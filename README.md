@@ -1,4 +1,4 @@
-# contain.rs -- simple containment
+# contain.rs -- run commands in a container environment without root
 
 ## Why?
 
@@ -6,24 +6,26 @@ Docker and rkt are great container runtimes for production use. However, both
 require root privileges to run a container. This makes them non-ideal for steps
 in a build process.
 
-contain.rs builds on [unprivileged user namespaces][unpriviliged-user-ns] to
-allow running commands in the context of a container image as an unprivilged
-user.
+contain.rs uses unprivileged [user namespaces][user-ns] to allow non-root users to run
+commands in the context of a container image.
 
-[unprivileged-user-ns]: TODO
+[user-ns]: http://man7.org/linux/man-pages/man7/user_namespaces.7.html
 
 ## Examples
 
-```
-$ contain.rs -v lol:wat some/docker:image some-cmd with args
+## Goals and non-goals
 
-## Goals
+Contain.rs has one main goal: allow
+
 Allow running commands in a similar environment as Docker without requiring
-root on systems with unprivileged user namespaces.
+root on systems with unprivileged user namespaces. The intention is to enable
+hermetic build actions that do not require root priviliges, eg for use in
+[Bazel].
 
-## Non-goals
-contain.rs is *not* intended to be used for running services in a production
-setting.
+[bazel]: http://bazel.io/
 
-contain.rs is *not* a sandbox. While unprivileged user namespaces can be used to
-create a sandbox, that is not the aim of contain.rs.
+Contain.rs has a bunch of anti-goals as well:
+
+- running services in a production setting
+- managing long-running processes
+- controlling resource usage of containers it creates
