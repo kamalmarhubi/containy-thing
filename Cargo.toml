@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["Kamal Marhubi <kamal@marhubi.com>"]
 
 [dependencies]
+libc = "0.2.0"
 nix = "0.4.2"
+tempdir = "0.3.4"
