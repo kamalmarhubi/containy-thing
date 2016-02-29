@@ -1,5 +1,5 @@
 [root]
-name = "containrs"
+name = "containy-thing"
 version = "0.1.0"
 dependencies = [
  "clap 1.5.5 (registry+https://github.com/rust-lang/crates.io-index)",

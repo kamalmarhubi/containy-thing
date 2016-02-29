@@ -1,4 +1,4 @@
-# contain.rs -- run commands in a container environment without root
+# containy-thing -- run commands in a container environment without root
 
 ## Why?
 
@@ -15,8 +15,6 @@ commands in the context of a container image.
 
 ## Goals and non-goals
 
-Contain.rs has one main goal: allow
-
 Allow running commands in a similar environment as Docker without requiring
 root on systems with unprivileged user namespaces. The intention is to enable
 hermetic build actions that do not require root priviliges, eg for use in
@@ -24,7 +22,7 @@ hermetic build actions that do not require root priviliges, eg for use in
 
 [bazel]: http://bazel.io/
 
-Contain.rs has a bunch of anti-goals as well:
+containy-thing has a bunch of anti-goals as well:
 
 - running services in a production setting
 - managing long-running processes
