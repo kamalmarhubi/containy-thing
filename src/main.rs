@@ -47,7 +47,7 @@ const NONE: Option<&'static [u8]> = None;
 
 fn main() {
     let mount_value_names = ["host-dir", "container-dir"];
-    let matches = App::new("containrs")
+    let matches = App::new("containy-thing")
                       .settings(&[ArgRequiredElseHelp, TrailingVarArg, UnifiedHelpMessage])
                       .arg(Arg::with_name("ROOTFS")
                                .help("Path to the extracted rootfs")
