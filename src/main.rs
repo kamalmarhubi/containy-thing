@@ -14,12 +14,10 @@ use std::process::Command;
 use clap::{App, Arg};
 use clap::AppSettings::{ArgRequiredElseHelp, TrailingVarArg, UnifiedHelpMessage};
 
-use libc::{getuid, getgid};
-
-use nix::mount::{mount, umount2, MsFlags, MNT_DETATCH, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE};
+use nix::mount::{mount, umount2, MsFlags, MNT_DETACH, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE};
 use nix::sched::{unshare, CLONE_NEWUSER, CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUTS, CLONE_NEWNET,
                  CLONE_NEWIPC};
-use nix::unistd::pivot_root;
+use nix::unistd::{getuid, getgid, pivot_root};
 
 use tempdir::TempDir;
 
@@ -69,9 +67,7 @@ fn main() {
     let rootfs = matches.value_of("ROOTFS").expect("ROOTFS should always be present");
     let command = matches.value_of("COMMAND").unwrap_or("/bin/bash");
 
-    // Not actually unsafe: they are required not to fail.
-    let (uid, gid) = unsafe { (getuid(), getgid()) };
-
+    let (uid, gid) = (getuid(), getgid());
 
     check!(unshare(CLONE_NEWUSER | CLONE_NEWNS));
 
@@ -164,8 +160,7 @@ fn setup_container_rootfs() -> Result<()> {
 
     check!(env::set_current_dir("/"));
 
-
-    check!(umount2(&old_root, MNT_DETATCH));
+    check!(umount2(&old_root, MNT_DETACH));
 
     check!(fs::remove_dir(old_root));
 
