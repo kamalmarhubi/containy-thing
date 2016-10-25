@@ -72,7 +72,7 @@ fn main() {
     check!(unshare(CLONE_NEWUSER | CLONE_NEWNS));
 
     // Figure out exactly how shared subtrees work and give this a meaningful comment!
-    check!(mount(NONE, b"/".as_ref(), NONE, MS_REC | MS_PRIVATE, NONE));
+    check!(mount(NONE, "/", NONE, MS_REC | MS_PRIVATE, NONE));
 
 
     check!(mount(Some(Path::new(rootfs)),
@@ -151,7 +151,7 @@ fn setup_container_rootfs() -> Result<()> {
     let old_root = try!(TempDir::new_in(check!(env::current_dir()), "old-root"));
 
     println!("old_root: {:?}", old_root.path());
-    try!(pivot_root(b".".as_ref(), old_root.path()));
+    try!(pivot_root(".", old_root.path()));
 
     let old_root = Path::new("/").join(old_root.into_path()
                                                .iter()
