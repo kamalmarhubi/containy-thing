@@ -27,7 +27,7 @@ macro_rules! check {
     ($e:expr) => (
         $e.unwrap_or_else(|e| panic!(concat!(stringify!($e), ": {:?}"), e))
     );
-    ($e:expr, desc = $msg:expr) => (
+    ($e:expr, $msg:expr) => (
         $e.unwrap_or_else(|e| panic!(concat!($msg, ": {:?}"), e))
     )
 }
@@ -130,7 +130,7 @@ fn main() {
 
     check!(Command::new(command)
         .env_clear()
-        .status(), desc = "run command");
+        .status(), "run command");
 
     // child process will be in new pid namespace
 
