@@ -16,7 +16,7 @@ use clap::AppSettings::{ArgRequiredElseHelp, TrailingVarArg, UnifiedHelpMessage}
 
 use libc::{getuid, getgid};
 
-use nix::mount::{mount, umount2, MsFlags, MNT_DETATCH, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE};
+use nix::mount::{mount, umount2, MsFlags, MNT_DETACH, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE};
 use nix::sched::{unshare, CLONE_NEWUSER, CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUTS, CLONE_NEWNET,
                  CLONE_NEWIPC};
 use nix::unistd::pivot_root;
@@ -165,7 +165,7 @@ fn setup_container_rootfs() -> Result<()> {
     check!(env::set_current_dir("/"));
 
 
-    check!(umount2(&old_root, MNT_DETATCH));
+    check!(umount2(&old_root, MNT_DETACH));
 
     check!(fs::remove_dir(old_root));
 
