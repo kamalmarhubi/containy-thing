@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["Kamal Marhubi <kamal@marhubi.com>"]
 
 [dependencies]
-clap = "1"
+clap = "2"
 env_logger = "0.3"
+itertools = "0.5"
 libc = "0.2"
 log = "0.3"
 nix = "0.5"
