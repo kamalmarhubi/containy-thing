@@ -10,7 +10,8 @@ extern crate walkdir;
 
 use std::env;
 use std::fmt;
-use std::fs::{self, File};
+use std::fs::{self, OpenOptions};
+use std::io::prelude::*;
 use std::os::unix::prelude::*;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -19,6 +20,8 @@ use clap::{App, Arg};
 use clap::AppSettings::{ArgRequiredElseHelp, TrailingVarArg, UnifiedHelpMessage};
 
 use itertools::Itertools;
+
+use libc::uid_t;
 
 use nix::mount::{mount, umount2, MsFlags, MNT_DETACH, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE};
 use nix::sched::{unshare, CLONE_NEWUSER, CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUTS, CLONE_NEWNET,
@@ -114,6 +117,7 @@ fn main() {
     // Figure out exactly how shared subtrees work and give this a meaningful comment!
     check!(mount(NONE, "/", NONE, MS_REC | MS_PRIVATE, NONE));
 
+    check!(map_as_root(uid));
 
     // Makes `mount` calls cleaner.
     let none: Option<&'static str> = None;
@@ -206,5 +210,19 @@ fn setup_container_rootfs() -> Result<()> {
     check!(fs::remove_dir(old_root));
 
     Ok(())
-    // fs::create_dir("old-root").
+}
+
+fn map_as_root(uid: uid_t) -> Result<()> {
+    trace!("opening uid_map file");
+    let mut uidmap = try!(OpenOptions::new()
+        .write(true)
+        .open("/proc/self/uid_map"));
+
+    trace!("mapping uid {} as root", uid);
+
+    // Must format before writing as the whole line has to be done in one
+    // write(2) call.
+    try!(uidmap.write(format!("0 {} 1", uid).as_bytes()));
+
+    Ok(())
 }
