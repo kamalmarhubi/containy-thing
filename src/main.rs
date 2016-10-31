@@ -1,4 +1,7 @@
+#[macro_use] extern crate log;
+
 extern crate clap;
+extern crate env_logger;
 extern crate libc;
 extern crate nix;
 extern crate tempdir;
@@ -44,6 +47,8 @@ type Result<T> = std::result::Result<T, Error>;
 const NONE: Option<&'static [u8]> = None;
 
 fn main() {
+    let _ = env_logger::init().unwrap();
+
     let mount_value_names = ["host-dir", "container-dir"];
     let matches = App::new("containy-thing")
                       .settings(&[ArgRequiredElseHelp, TrailingVarArg, UnifiedHelpMessage])
@@ -64,8 +69,12 @@ fn main() {
                                .takes_value(true)
                                .value_names(&mount_value_names))
                       .get_matches();
-    let rootfs = matches.value_of("ROOTFS").expect("ROOTFS should always be present");
-    let command = matches.value_of("COMMAND").unwrap_or("/bin/bash");
+    let rootfs = Path::new(matches
+                           .value_of("ROOTFS")
+                           .expect("ROOTFS should always be present"));
+    let command = Path::new(matches
+                            .value_of("COMMAND")
+                            .expect("COMMAND should always be present"));
 
     let (uid, gid) = (getuid(), getgid());
 
@@ -119,7 +128,14 @@ fn main() {
     // }
 
     check!(setup_container_rootfs());
+    debug!("current dir: {}", env::current_dir().unwrap().display());
 
+    debug!("{}: {:?}", command.display(), command.exists());
+    debug!("{}: {:o}", command.display(),
+           Path::new("/bin/bash")
+           .metadata()
+           .map(|md| md.permissions().mode())
+           .expect("couldn't stat command"));
 
     // for entry in WalkDir::new(check!(env::current_dir())).into_iter().filter_entry(|e| !e.path().starts_with("old-root")).filter_map(|e| e.ok()) {
     //    println!("{}", entry.path().display());
@@ -147,10 +163,11 @@ fn main() {
 
 /// Expects to have chdir'ed to the rootfs directory already.
 fn setup_container_rootfs() -> Result<()> {
+    debug!("setting up rootfs");
     // need to set up the root dir and chdir to it
     let old_root = try!(TempDir::new_in(check!(env::current_dir()), "old-root"));
 
-    println!("old_root: {:?}", old_root.path());
+    debug!("old_root: {:?}", old_root.path());
     try!(pivot_root(".", old_root.path()));
 
     let old_root = Path::new("/").join(old_root.into_path()
