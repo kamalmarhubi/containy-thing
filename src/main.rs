@@ -23,7 +23,7 @@ use itertools::Itertools;
 
 use libc::uid_t;
 
-use nix::mount::{mount, umount2, MsFlags, MNT_DETACH, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE};
+use nix::mount::{mount, umount2, MsFlags, MNT_DETACH, MS_NODEV, MS_BIND, MS_NOSUID, MS_REC, MS_PRIVATE, MS_NOEXEC};
 use nix::sched::{unshare, CLONE_NEWUSER, CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUTS, CLONE_NEWNET,
                  CLONE_NEWIPC};
 use nix::unistd::{getuid, getgid, pivot_root};
@@ -129,31 +129,16 @@ fn main() {
                  none));
 
     check!(env::set_current_dir(rootfs));
-    // fs::create_dir(Path::new(rootfs).join("bin")).expect("create /bin");
-    // fs::create_dir(Path::new(rootfs).join("lib")).expect("create /bin");
-    // fs::create_dir(Path::new(rootfs).join("lib64")).expect("create /bin");
+    debug!("current dir {:?}", env::current_dir().unwrap());
 
-    // check!(mount(Some(Path::new("/bin")),
-    //             &Path::new(rootfs).join("bin"),
-    //             Some(Path::new("")),
-    //             MS_BIND | MS_NOSUID,
-    //             Some(Path::new(""))));
+    for (host_dir, container_dir) in mounts {
+        check!(bind(host_dir, container_dir));
+    }
 
-    // check!(mount(Some(Path::new("/lib")),
-    //             &Path::new(rootfs).join("lib"),
-    //             Some(Path::new("")),
-    //             MS_BIND | MS_NOSUID,
-    //             Some(Path::new(""))));
-
-    // check!(mount(Some(Path::new("/lib64")),
-    //             &Path::new(rootfs).join("lib64"),
-    //             Some(Path::new("")),
-    //             MS_BIND | MS_NOSUID,
-    //             Some(Path::new(""))));
-
-    // for entry in WalkDir::new(rootfs).into_iter().filter_map(|e| e.ok()) {
-    //    println!("{}", entry.path().display());
-    // }
+    // TODO: mount /proc, which requiresforking to properly enter the pid
+    // namespace, or using clone instead of unshare.
+    // It might be better to use clone anyway because of a race condition:
+    // https://lkml.org/lkml/2015/7/28/833.
 
     check!(setup_container_rootfs());
     debug!("current dir: {}", env::current_dir().unwrap().display());
@@ -178,16 +163,15 @@ fn main() {
 
     check!(command.status(), "run command");
 
-    // need to read in some source thing aci manifest
-    // assume an ACI image layout (untarred)
     // set up the mounts
-    // fork & exec
-    // wait
-
 }
 
-// fn bind<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D) -> Result<()> {
-// }
+fn bind<S: AsRef<Path>, D: AsRef<Path>>(src: S, dst: D) -> Result<()> {
+    let none: Option<&'static str> = None;
+    check!(mount(Some(src.as_ref()), dst.as_ref(), none, MS_BIND, none));
+
+    Ok(())
+}
 
 /// Expects to have chdir'ed to the rootfs directory already.
 fn setup_container_rootfs() -> Result<()> {
