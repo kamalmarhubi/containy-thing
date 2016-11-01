@@ -112,7 +112,7 @@ fn main() {
 
     let (uid, gid) = (getuid(), getgid());
 
-    check!(unshare(CLONE_NEWUSER | CLONE_NEWNS));
+    check!(unshare(CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID));
 
     // Figure out exactly how shared subtrees work and give this a meaningful comment!
     check!(mount(NONE, "/", NONE, MS_REC | MS_PRIVATE, NONE));
